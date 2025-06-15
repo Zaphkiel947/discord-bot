@@ -125,7 +125,7 @@ async def play_song(ctx, *, url):
             return
 
     if not ctx.voice_client.is_playing():
-        await play_next(ctx)
+        await play_next(ctx.guild.id)
 
 #Play nexr helper
 async def play_next(ctx):
@@ -149,7 +149,9 @@ async def play_next(ctx):
             audio_url = info['url']
             title = info.get("title", "Unknown Title")
 
-        source = await discord.FFmpegOpusAudio.from_probe(audio_url, **ffmpeg_opts)
+        FFMPEG_PATH = "./ffmpeg.exe"
+        source = await discord.FFmpegOpusAudio.from_probe(audio_url, executable=FFMPEG_PATH, **ffmpeg_opts)
+
 
         def after_playing(error):
             if error:
@@ -161,6 +163,22 @@ async def play_next(ctx):
 
     except Exception as e:
         await ctx.send(f"❌ Could not play the song: {e}")
+
+@bot.command(name="queue")
+async def show_queue(ctx):
+    guild_id = ctx.guild.id
+
+    if guild_id not in song_queues or not song_queues[guild_id]:
+        await ctx.send("🔇 The queue is empty.")
+        return
+
+    queue_list = song_queues[guild_id]
+    msg = "**🎶 Upcoming Songs:**\n"
+    for i, url in enumerate(queue_list, start=1):
+        msg += f"{i}. {url}\n"
+
+    await ctx.send(msg)
+
 
 
 #Pause
