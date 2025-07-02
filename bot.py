@@ -40,12 +40,42 @@ async def on_message(message):
     
     msg = message.content.lower()
 
-    if any(phrase in msg for phrase in ["fuck you", "fk you", "fy", "fuk you"]):
+    if any(phrase in msg for phrase in ["fuck you", "fk you", "fuk you"]):
         await message.channel.send("you are gay-_-")
 
     elif any(phrase in msg for phrase in ["alive"]):
-        await message.channel.send("He is dead.")    
+        await message.channel.send("He is dead.") 
 
+    
+    # ✅ Handle "miku ..." custom keyword
+    if msg.startswith("miku"):
+        parts = message.content.split(" ", 1)
+        
+        if len(parts) == 1:
+            await message.channel.send("Hi, I'm Miku! How can I help?")
+            return
+
+        command = parts[1].strip()
+
+        # 🎵 Play music if it's a URL
+        if command.startswith("play "):
+            link = command[5:].strip()
+            ctx = await bot.get_context(message)
+            await play(ctx, link)
+            return
+
+        # 🔁 Built-in triggers
+        elif command == "ping":
+            await message.channel.send("pong!")
+            return
+
+        elif "how are you" in command:
+            await message.channel.send("I'm doing great! ✨ What about you?")
+            return
+
+        else:
+            await message.channel.send(f"🤖 Sorry, I didn't understand '{command}'")
+            return
 
     await bot.process_commands(message)
 
@@ -54,6 +84,10 @@ async def on_message(message):
 async def play(ctx, url: str):
     if not ctx.author.voice:
         await ctx.send("You're not connected to a voice channel.")
+        return
+    
+    if "list=" in url:
+        await ctx.send("❌ Playlist links are not supported. Use direct YouTube video links.")
         return
     
     voice_channel = ctx.author.voice.channel
